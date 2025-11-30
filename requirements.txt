@@ -7,8 +7,9 @@ nest-asyncio
 RAG/PDF Processing Libraries (Downgraded for max stability against pydantic conflicts)
 
 pypdf
-langchain-core==0.1.52  # Downgraded to a stable version known to avoid pydantic_v1 conflicts
-langchain-community==0.0.30
-langchain-google-genai==0.0.15 # Use older, fully stable version of the integration package
+langchain==0.1.0 # Set the main LangChain package to a highly stable, early version
+langchain-core==0.1.1 # Ensures core utilities are compatible with the old main package
+langchain-community==0.0.12 # Stable version of community integrations
+langchain-google-genai==0.0.1 # Very stable, early version of the Google integration
 faiss-cpu==1.8.0
 google-genai
