@@ -317,14 +317,20 @@ with st.form(key='chat_form', clear_on_submit=True):
         submitted = st.form_submit_button("➤")
 
 
+# Add a flag to prevent rerun loops
+if "processing_query" not in st.session_state:
+    st.session_state["processing_query"] = False
+
 # Process the question if the form was explicitly submitted AND the text is not empty.
-if submitted and question_text:
+if submitted and question_text and not st.session_state["processing_query"]:
     question = question_text
+    st.session_state["processing_query"] = True
     
     # --- RAG Logic ---
     if not current_vectordb:
         with st.chat_message("assistant"):
             st.write("Please ingest sources using the **➕** button or the central prompt.")
+        st.session_state["processing_query"] = False
     else:
         # --- Start of chat generation logic ---
         
