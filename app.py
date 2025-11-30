@@ -363,7 +363,7 @@ If the answer requires information not present here, say so clearly.
             
             try:
                 llm = ChatGoogleGenerativeAI(
-                    model="gemini-2.0-flash-exp",
+                    model="gemini-2.5-flash",
                     google_api_key=GOOGLE_API_KEY,
                     temperature=0.3,
                     streaming=True,

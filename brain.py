@@ -105,7 +105,7 @@ def docs_to_index(docs: List[Document], google_api_key: str) -> FAISS:
     try:
         embeddings = GoogleGenerativeAIEmbeddings(
             # Using the modern embedding model
-            model="models/text-embedding-004",
+            model="models/gemini-embedding-001",
             google_api_key=google_api_key
         )
     except Exception as e:
