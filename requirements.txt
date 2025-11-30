@@ -1,10 +1,14 @@
-streamlit
-langchain
-langchain-community
-faiss-cpu
-langchain-google-genai
-google-genai
-google-generativeai
-tiktoken
+Libraries required for the Streamlit app
+
+streamlit==1.30.0
+python-dotenv
+nest-asyncio
+
+RAG/PDF Processing Libraries
+
 pypdf
-nest_asyncio
+langchain==0.2.11
+langchain-google-genai==1.0.6
+langchain-community==0.2.9
+faiss-cpu==1.8.0
+google-genai # For URL Context tool (even if disabled, it's imported in brain.py)
