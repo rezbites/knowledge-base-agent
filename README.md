@@ -15,7 +15,7 @@ An intelligent chatbot that answers questions based on your PDF documents using 
 ## ARCHITECURE
 
 
-![alt text](system.png)
+![alt text](des.png)
 
 
 ## ✨ Features
