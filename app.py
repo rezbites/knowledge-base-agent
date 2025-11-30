@@ -81,15 +81,6 @@ def create_vectordb(files: List[st.runtime.uploaded_file_manager.UploadedFile], 
             [file.getvalue() for file in files], filenames, GOOGLE_API_KEY
         )
 
-# --- CRITICAL FIX: Removed @st.cache_data to prevent state inconsistencies ---
-def get_relevant_context(_vectordb, question: str, k: int = 3):
-    """
-    Retrieves relevant context from vector DB (uncached for stability).
-    """
-    search_results = _vectordb.similarity_search(question, k=k)
-    return "\n\n".join([result.page_content for result in search_results])
-
-
 # Get the mutable reference to the current chat dictionary
 current_chat: Dict[str, Any] = st.session_state["chats"][st.session_state["current_chat_id"]]
 
@@ -132,8 +123,6 @@ with st.sidebar:
                 )
                 col_save, col_cancel = st.columns(2)
                 with col_save:
-                    # Use a dummy form submission mechanism to handle Enter key press if needed, 
-                    # but for simplicity, we will use explicit buttons.
                     if st.button("Save", key=f"save_{chat_id}", use_container_width=True):
                         rename_chat(chat_id, new_title)
                 with col_cancel:
@@ -181,7 +170,6 @@ st.markdown(
         margin-bottom: 2em;
         color: #ddd;
     }
-    /* FIX: Center the button container explicitly */
     .stButton>button {
         width: 100%;
         margin: 0 auto;
@@ -191,16 +179,15 @@ st.markdown(
         display: flex;
         justify-content: center;
         width: 100%;
-        margin-top: 10px; /* spacing above buttons */
+        margin-top: 10px;
     }
     .modal-container {
         display: flex;
         justify-content: center;
         align-items: center;
         height: 100vh;
-        margin-top: -100px; /* Adjust based on title/header size */
+        margin-top: -100px;
     }
-    /* Custom style for thinner horizontal rule inside the modal */
     .modal-hr {
         margin: 10px 0 !important;
         opacity: 0.5;
@@ -214,7 +201,7 @@ st.markdown(
 def run_ingestion(pdf_files):
     errors = []
     success_msgs = []
-    new_vectordb = current_chat["vectordb"] # Start with existing or None
+    new_vectordb = current_chat["vectordb"]
     
     # 1. Handle PDF ingestion
     if pdf_files:
@@ -229,9 +216,8 @@ def run_ingestion(pdf_files):
     if new_vectordb is not None and pdf_files:
         current_chat["vectordb"] = new_vectordb
         st.session_state["show_ingestion_modal"] = False
-        st.success("Sources successfully submitted! Starting chat...")
-        
-        st.rerun() 
+        # Immediately rerun to show chat interface
+        st.rerun()
     elif not pdf_files:
         st.warning("No PDF files provided to ingest.")
     
@@ -239,20 +225,17 @@ def run_ingestion(pdf_files):
     if errors:
         for err in errors: st.error(err)
     
-# Display a central "pop-up" for ingestion if sources are missing or user triggered
+# Display modal - more specific condition
 if st.session_state.get("show_ingestion_modal", False) or (current_vectordb is None and len(current_history) <= 1):
-    # Use a centered column layout for the modal
     col_empty1, col_modal, col_empty2 = st.columns([1, 2, 1])
     
     with col_modal:
         with st.container(border=True):
-            # MODAL HEADER
             st.header("🧠 Knowledge Agent: Empower Your Chat")
             st.write("Upload PDF documents to build the knowledge base for the current conversation.")
             
             st.markdown('<hr class="modal-hr">', unsafe_allow_html=True)
             
-            # Ingestion UI (Only PDF Uploader now)
             pdf_files = st.file_uploader(
                 "Upload PDF documents",
                 type="pdf",
@@ -262,30 +245,26 @@ if st.session_state.get("show_ingestion_modal", False) or (current_vectordb is N
             
             st.markdown('<hr class="modal-hr">', unsafe_allow_html=True)
             
-            # Button Layout for Centering
             col_left, col_center, col_right = st.columns([1, 2, 1])
 
             with col_center:
                 if st.button("Submit", use_container_width=True, key="ingest_button_modal"):
-                    # Call ingestion logic
                     run_ingestion(pdf_files)
             
-            # Place the Cancel button below the Submit button if needed
             if current_chat["vectordb"] is not None:
-                st.markdown("") # Spacing
+                st.markdown("")
                 col_cancel_left, col_cancel_center, col_cancel_right = st.columns([1, 2, 1])
                 with col_cancel_center:
-                    if st.button("Cancel", use_container_width=True, key="cancel_button_modal_2"): # Renamed key
+                    if st.button("Cancel", use_container_width=True, key="cancel_button_modal_2"):
                         st.session_state["show_ingestion_modal"] = False
                         st.rerun()
             else:
-                st.markdown("") # Placeholder
+                st.markdown("")
 
-    st.stop() # Stop rendering the chat input/history if the modal is shown
+    st.stop()
 
 
-# If the modal is hidden, show the chat interface
-# Display welcome message only if no chat history exists beyond the system prompt
+# Show chat interface
 if len(current_history) <= 1:
     st.markdown("<div class='centered-text'>Start your knowledge journey here.</div>", unsafe_allow_html=True)
 else:
@@ -298,47 +277,38 @@ else:
 # 3. Chat Input and Logic
 # -----------------------------
 
-# Use st.form to capture the input and handle the '+' button logic
-with st.form(key='chat_form', clear_on_submit=True):
-    col_plus, col_input, col_send = st.columns([0.1, 0.8, 0.1])
-    
-    with col_plus:
-        # Simulate the '+' button in the chat input
-        if st.form_submit_button("➕", help="Add new sources/documents"):
-            st.session_state["show_ingestion_modal"] = True
-            st.rerun()
-            
-    # The actual question input. This is where the user types.
-    with col_input:
-        # The value of 'question' will be held in the form state until submitted.
-        question_text = st.text_input("Ask anything", key="question_text_input", label_visibility="collapsed")
-        
-    # The submission button for the question text (triggered by Enter key or clicking this)
-    with col_send:
-        submitted = st.form_submit_button("➤")
+# Chat input outside of form for better UX
+prompt = st.chat_input("Ask anything")
 
+# Button to add new sources
+col1, col2, col3 = st.columns([1, 10, 1])
+with col1:
+    if st.button("➕", help="Add new sources/documents"):
+        st.session_state["show_ingestion_modal"] = True
+        st.rerun()
 
-# Process the question if the form was explicitly submitted AND the text is not empty.
-if submitted and question_text:
-    question = question_text
-    
-    # --- RAG Logic ---
+# Process the question
+if prompt:
     if not current_vectordb:
         with st.chat_message("assistant"):
-            st.write("Please ingest sources using the **➕** button or the central prompt.")
+            st.write("Please ingest sources using the **➕** button first.")
     else:
-        # --- Start of chat generation logic ---
+        # Add user message to history and display it
+        current_history.append({"role": "user", "content": prompt})
+        with st.chat_message("user"):
+            st.write(prompt)
         
         # Retrieve context
         try:
-            with st.spinner("Searching documents..."):
-                pdf_extract = get_relevant_context(current_vectordb, question, k=3)
+            search_results = current_vectordb.similarity_search(prompt, k=3)
+            pdf_extract = "\n\n".join([result.page_content for result in search_results])
         except Exception as e:
             with st.chat_message("assistant"):
-                st.write(f"Error retrieving context from vector DB: {e}")
-        else:
-            # Build system prompt (using your existing template)
-            prompt_template = """
+                st.write(f"Error retrieving context: {e}")
+                st.stop()
+
+        # Build system prompt
+        prompt_template = """
 You are the **Knowledge Base Assistant** for a company. 
 Your primary job is to answer user questions using ONLY the information retrieved from the company's internal documents.
 
@@ -359,14 +329,14 @@ Your behavior must follow these rules:
 - Clearly state that the answer is **not based on company documents**.
 - Keep general answers simple (2-3 sentences).
 - Add a disclaimer:
-  “This is general information and not official company guidance.”
+  "This is general information and not official company guidance."
 
 -------------------------
 ### 3. For sensitive topics (finance, compliance, legal, HR, taxes, investment, strategy):
 - Give only high-level explanations.
 - Avoid specific actionable recommendations.
 - Add:
-  “Consult official company personnel or professionals for authoritative guidance.”
+  "Consult official company personnel or professionals for authoritative guidance."
 
 -------------------------
 ### 4. Style & Tone:
@@ -383,41 +353,39 @@ The retrieved company document content is below:
 Use ONLY this text as the authoritative company knowledge base.
 If the answer requires information not present here, say so clearly.
 """
-            system_prompt = prompt_template.format(pdf_extract=pdf_extract)
-            
-            # Update system message for the current chat
-            current_history[0] = {"role": "system", "content": system_prompt}
+        system_prompt = prompt_template.format(pdf_extract=pdf_extract)
+        current_history[0] = {"role": "system", "content": system_prompt}
 
-            # 1. Add user message to history
-            current_history.append({"role": "user", "content": question})
+        # Call Gemini and display response
+        with st.chat_message("assistant"):
+            message_placeholder = st.empty()
+            full_response = ""
             
-            # 2. Explicitly echo the user's message immediately
-            with st.chat_message("user"):
-                st.write(question)
+            try:
+                llm = ChatGoogleGenerativeAI(
+                    model="gemini-2.0-flash-exp",
+                    google_api_key=GOOGLE_API_KEY,
+                    temperature=0.3,
+                    streaming=True,
+                )
+                
+                for chunk in llm.stream(current_history):
+                    if hasattr(chunk, "content"):
+                        full_response += chunk.content
+                        message_placeholder.markdown(full_response + "▌")
+                
+                message_placeholder.markdown(full_response)
+                
+            except Exception as e:
+                full_response = f"Error calling Gemini model: {e}"
+                message_placeholder.markdown(full_response)
 
-            # 3. Call Gemini
-            with st.chat_message("assistant"):
-                botmsg = st.empty()
-                try:
-                    llm = ChatGoogleGenerativeAI(
-                        model="gemini-2.5-flash",
-                        google_api_key=GOOGLE_API_KEY,
-                    )
-                    # Use invoke for non-streaming response here to minimize rerun complexity
-                    response = llm.invoke(current_history)
-                    answer_text = response.content if hasattr(response, "content") else str(response)
-                except Exception as e:
-                    answer_text = f"Error calling Gemini model: {e}"
-
-                # Write the answer to the placeholder
-                botmsg.write(answer_text)
-
-            # 4. Save assistant reply and update chat title
-            current_history.append({"role": "assistant", "content": answer_text})
-            
-            # 5. FINAL: Update chat title if it's the first question
-            if len(current_history) == 3 and current_chat["title"].startswith("New Chat"):
-                current_chat["title"] = question[:25] + "..."
-            
-            # 6. CRITICAL FIX: Force a rerun to commit the state, clear the form, and update the sidebar/display.
-            st.rerun()
+        # Save assistant response
+        current_history.append({"role": "assistant", "content": full_response})
+        
+        # Update chat title if first question
+        if len(current_history) == 3 and current_chat["title"].startswith("New Chat"):
+            current_chat["title"] = prompt[:25] + "..."
+        
+        # Rerun to refresh the UI
+        st.rerun()
