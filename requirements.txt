@@ -1,0 +1,10 @@
+streamlit
+langchain
+langchain-community
+faiss-cpu
+langchain-google-genai
+google-genai
+google-generativeai
+tiktoken
+pypdf
+nest_asyncio
