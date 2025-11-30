@@ -1,10 +1,8 @@
 import re
 from io import BytesIO
 from typing import Tuple, List, Optional
-# Removed urllib.parse imports
-# Removed google.genai imports
 
-# FIX: FINAL IMPORT PATH
+# FIXED: Updated import for newer LangChain versions
 from langchain_core.documents import Document 
 from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -107,7 +105,7 @@ def docs_to_index(docs: List[Document], google_api_key: str) -> FAISS:
     try:
         embeddings = GoogleGenerativeAIEmbeddings(
             # Using the modern embedding model
-            model="models/gemini-embedding-001",
+            model="models/text-embedding-004",
             google_api_key=google_api_key
         )
     except Exception as e:

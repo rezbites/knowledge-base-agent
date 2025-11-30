@@ -220,9 +220,8 @@ def run_ingestion(pdf_files):
     if new_vectordb is not None and pdf_files:
         current_chat["vectordb"] = new_vectordb
         st.session_state["show_ingestion_modal"] = False
-        st.success("Sources successfully submitted! Starting chat...")
-        
-        st.rerun() 
+        st.success("Sources successfully submitted! You can now ask questions!")
+        # The page will naturally refresh on next interaction
     elif not pdf_files:
         st.warning("No PDF files provided to ingest.")
     
@@ -231,7 +230,8 @@ def run_ingestion(pdf_files):
         for err in errors: st.error(err)
     
 # Display a central "pop-up" for ingestion if sources are missing or user triggered
-if st.session_state["show_ingestion_modal"] or current_vectordb is None:
+# FIXED: More specific condition to avoid retriggering after questions
+if st.session_state.get("show_ingestion_modal", False) or (current_vectordb is None and len(current_history) <= 1):
     # Use a centered column layout for the modal
     col_empty1, col_modal, col_empty2 = st.columns([1, 2, 1])
     
@@ -266,7 +266,7 @@ if st.session_state["show_ingestion_modal"] or current_vectordb is None:
                 st.markdown("") # Spacing
                 col_cancel_left, col_cancel_center, col_cancel_right = st.columns([1, 2, 1])
                 with col_cancel_center:
-                    if st.button("Cancel", use_container_width=True, key="cancel_button_modal_2"): # Renamed key
+                    if st.button("Cancel", use_container_width=True, key="cancel_button_modal_2"):
                         st.session_state["show_ingestion_modal"] = False
                         st.rerun()
             else:
@@ -351,14 +351,14 @@ Your behavior must follow these rules:
 - Clearly state that the answer is **not based on company documents**.
 - Keep general answers simple (2-3 sentences).
 - Add a disclaimer:
-  “This is general information and not official company guidance.”
+  "This is general information and not official company guidance."
 
 -------------------------
 ### 3. For sensitive topics (finance, compliance, legal, HR, taxes, investment, strategy):
 - Give only high-level explanations.
 - Avoid specific actionable recommendations.
 - Add:
-  “Consult official company personnel or professionals for authoritative guidance.”
+  "Consult official company personnel or professionals for authoritative guidance."
 
 -------------------------
 ### 4. Style & Tone:
@@ -392,7 +392,7 @@ If the answer requires information not present here, say so clearly.
                 botmsg = st.empty()
                 try:
                     llm = ChatGoogleGenerativeAI(
-                        model="gemini-2.5-flash",
+                        model="gemini-2.0-flash-exp",
                         google_api_key=GOOGLE_API_KEY,
                     )
                     response = llm.invoke(current_history)
@@ -406,8 +406,8 @@ If the answer requires information not present here, say so clearly.
             # 4. Save assistant reply and update chat title
             current_history.append({"role": "assistant", "content": answer_text})
             
-            # 5. FINAL: Rerun to commit the state, clear the form, and update the sidebar title
+            # 5. Update chat title if it's the first question
             if len(current_history) == 3 and current_chat["title"].startswith("New Chat"):
                 current_chat["title"] = question[:25] + "..."
             
-            st.rerun()
+            # REMOVED: st.rerun() - Let Streamlit handle the natural refresh
