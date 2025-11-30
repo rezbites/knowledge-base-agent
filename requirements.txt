@@ -4,11 +4,11 @@ streamlit==1.30.0
 python-dotenv
 nest-asyncio
 
-RAG/PDF Processing Libraries (Downgraded for stability)
+RAG/PDF Processing Libraries (Downgraded for max stability against pydantic conflicts)
 
 pypdf
-langchain-core==0.2.11
-langchain-community==0.2.6
-langchain-google-genai==0.0.19 # Use a stable older version of the integration package
+langchain-core==0.1.52  # Downgraded to a stable version known to avoid pydantic_v1 conflicts
+langchain-community==0.0.30
+langchain-google-genai==0.0.15 # Use older, fully stable version of the integration package
 faiss-cpu==1.8.0
 google-genai
