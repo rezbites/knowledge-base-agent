@@ -11,8 +11,4 @@ langchain-core>=0.1.52
 langchain-community>=0.0.38
 langchain-google-genai>=1.0.0
 faiss-cpu>=1.8.0
-```
 
-2. **Python version**: Streamlit Cloud typically uses Python 3.11 by default. To specify Python 3.10, create a `.python-version` file in your root directory:
-```
-3.10
