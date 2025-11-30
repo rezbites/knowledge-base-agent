@@ -7,8 +7,9 @@ nest-asyncio
 RAG/PDF Processing Libraries
 
 pypdf
-langchain==0.2.11
+langchain-core==0.2.16
 langchain-google-genai==1.0.6
-langchain-community==0.2.9
+langchain-community==0.2.11  # Updated to latest 0.2.x for consistency
 faiss-cpu==1.8.0
-google-genai # For URL Context tool (even if disabled, it's imported in brain.py)
+
+Removed the unnecessary top-level 'langchain' package
