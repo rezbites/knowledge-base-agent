@@ -4,12 +4,11 @@ streamlit==1.30.0
 python-dotenv
 nest-asyncio
 
-RAG/PDF Processing Libraries
+RAG/PDF Processing Libraries (Downgraded for stability)
 
 pypdf
-langchain-core==0.2.16
-langchain-google-genai==1.0.6
-langchain-community==0.2.11  # Updated to latest 0.2.x for consistency
+langchain-core==0.2.11
+langchain-community==0.2.6
+langchain-google-genai==0.0.19 # Use a stable older version of the integration package
 faiss-cpu==1.8.0
-
-Removed the unnecessary top-level 'langchain' package
+google-genai
