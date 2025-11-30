@@ -11,6 +11,13 @@ An intelligent chatbot that answers questions based on your PDF documents using 
 
 ## https://rag-corp-intel.streamlit.app
 
+
+## ARCHITECURE
+
+
+[!alt text](architecture.png)
+
+
 ## ✨ Features
 
 - 📄 **PDF Document Processing** - Upload and index multiple PDF files
