@@ -1,16 +1,18 @@
-Libraries required for the Streamlit app
-
-streamlit==1.30.0
+# Core Streamlit dependencies
+streamlit>=1.30.0
 python-dotenv
 nest-asyncio
 
-RAG/PDF Processing Libraries (Downgraded for max stability against pydantic conflicts)
-
-pydantic<2.0.0 # CRITICAL FIX: Ensure Pydantic V1 is installed
+# RAG/PDF Processing Libraries
+pydantic>=2.0.0,<3.0.0
 pypdf
-langchain==0.1.0 # Set the main LangChain package to a highly stable, early version
-langchain-core==0.1.1 # Ensures core utilities are compatible with the old main package
-langchain-community==0.0.12 # Stable version of community integrations
-langchain-google-genai==0.0.1 # Very stable, early version of the Google integration
-faiss-cpu==1.8.0
-google-genai
+langchain>=0.1.20
+langchain-core>=0.1.52
+langchain-community>=0.0.38
+langchain-google-genai>=1.0.0
+faiss-cpu>=1.8.0
+```
+
+2. **Python version**: Streamlit Cloud typically uses Python 3.11 by default. To specify Python 3.10, create a `.python-version` file in your root directory:
+```
+3.10
