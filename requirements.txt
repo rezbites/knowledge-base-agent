@@ -6,6 +6,7 @@ nest-asyncio
 
 RAG/PDF Processing Libraries (Downgraded for max stability against pydantic conflicts)
 
+pydantic<2.0.0 # CRITICAL FIX: Ensure Pydantic V1 is installed
 pypdf
 langchain==0.1.0 # Set the main LangChain package to a highly stable, early version
 langchain-core==0.1.1 # Ensures core utilities are compatible with the old main package

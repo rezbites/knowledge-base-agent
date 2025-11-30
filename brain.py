@@ -4,7 +4,7 @@ from typing import Tuple, List, Optional
 # Removed urllib.parse imports
 # Removed google.genai imports
 
-# FIX: Changed import path from deprecated 'langchain.docstore.document' to modern 'langchain_core.documents'
+# FIX: FINAL IMPORT PATH
 from langchain_core.documents import Document 
 from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
 from langchain.text_splitter import RecursiveCharacterTextSplitter
