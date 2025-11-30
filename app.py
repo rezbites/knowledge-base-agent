@@ -81,6 +81,14 @@ def create_vectordb(files: List[st.runtime.uploaded_file_manager.UploadedFile], 
             [file.getvalue() for file in files], filenames, GOOGLE_API_KEY
         )
 
+@st.cache_data
+def get_relevant_context(_vectordb, question: str, k: int = 3):
+    """
+    Cached function to retrieve relevant context from vector DB.
+    """
+    search_results = _vectordb.similarity_search(question, k=k)
+    return "\n\n".join([result.page_content for result in search_results])
+
 # Get the mutable reference to the current chat dictionary
 current_chat: Dict[str, Any] = st.session_state["chats"][st.session_state["current_chat_id"]]
 
@@ -220,8 +228,8 @@ def run_ingestion(pdf_files):
     if new_vectordb is not None and pdf_files:
         current_chat["vectordb"] = new_vectordb
         st.session_state["show_ingestion_modal"] = False
-        st.success("Sources successfully submitted! You can now ask questions!")
-        # The page will naturally refresh on next interaction
+        # Immediately rerun to show chat interface
+        st.rerun()
     elif not pdf_files:
         st.warning("No PDF files provided to ingest.")
     
@@ -320,14 +328,14 @@ if submitted and question_text:
     else:
         # --- Start of chat generation logic ---
         
-        # Retrieve context
+        # Retrieve context with caching
         try:
-            search_results = current_vectordb.similarity_search(question, k=3)
+            with st.spinner("Searching documents..."):
+                pdf_extract = get_relevant_context(current_vectordb, question, k=3)
         except Exception as e:
             with st.chat_message("assistant"):
                 st.write(f"Error retrieving context from vector DB: {e}")
         else:
-            pdf_extract = "\n\n".join([result.page_content for result in search_results])
 
             # Build system prompt (using your existing template)
             prompt_template = """
@@ -387,21 +395,27 @@ If the answer requires information not present here, say so clearly.
             with st.chat_message("user"):
                 st.write(question)
 
-            # 3. Call Gemini
+            # 3. Call Gemini with streaming
             with st.chat_message("assistant"):
                 botmsg = st.empty()
                 try:
                     llm = ChatGoogleGenerativeAI(
                         model="gemini-2.0-flash-exp",
                         google_api_key=GOOGLE_API_KEY,
+                        temperature=0.3,
+                        streaming=True,
                     )
-                    response = llm.invoke(current_history)
-                    answer_text = response.content if hasattr(response, "content") else str(response)
+                    
+                    # Stream the response
+                    answer_text = ""
+                    for chunk in llm.stream(current_history):
+                        if hasattr(chunk, "content"):
+                            answer_text += chunk.content
+                            botmsg.write(answer_text)
+                        
                 except Exception as e:
                     answer_text = f"Error calling Gemini model: {e}"
-
-                # Write the answer to the placeholder
-                botmsg.write(answer_text)
+                    botmsg.write(answer_text)
 
             # 4. Save assistant reply and update chat title
             current_history.append({"role": "assistant", "content": answer_text})
