@@ -5,7 +5,18 @@ An intelligent chatbot that answers questions based on your PDF documents using 
 
 ## DEMO LINK
 
+## [Demo Project Video](https://drive.google.com/file/d/1EZSBlBCW21_HuCRzZ8BrezrWMmp_Lfv0/view?usp=drive_link)
+
+## DEPLOYED
+
 ## https://rag-corp-intel.streamlit.app
+
+
+## ARCHITECURE
+
+
+![alt text](des.png)
+
 
 ## ✨ Features
 
