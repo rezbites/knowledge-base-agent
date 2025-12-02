@@ -68,6 +68,8 @@ def new_chat():
         "vectordb": None,
     }
     st.session_state["current_chat_id"] = new_id
+    # Ensure modal is shown for new chats
+    st.session_state["show_ingestion_modal"] = True
 
 @st.cache_resource
 def create_vectordb(files: List[st.runtime.uploaded_file_manager.UploadedFile], filenames: List[str]):
@@ -141,6 +143,8 @@ with st.sidebar:
                     # Non-current chat is a clickable button to switch
                     if st.button(title, key=f"hist_{chat_id}", use_container_width=True):
                         st.session_state["current_chat_id"] = chat_id
+                        # FIX: Reset modal state when switching to an existing chat
+                        st.session_state["show_ingestion_modal"] = False
                         st.rerun()
 
             with col_edit:
@@ -251,6 +255,7 @@ if st.session_state.get("show_ingestion_modal", False) or (current_vectordb is N
                 if st.button("Submit", use_container_width=True, key="ingest_button_modal"):
                     run_ingestion(pdf_files)
             
+            # Show Cancel button if the chat already has a knowledge base (i.e., user opened modal manually)
             if current_chat["vectordb"] is not None:
                 st.markdown("")
                 col_cancel_left, col_cancel_center, col_cancel_right = st.columns([1, 2, 1])
